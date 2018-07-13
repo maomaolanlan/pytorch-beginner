@@ -2,7 +2,6 @@ __author__ = 'SherlockLiao'
 
 import torch
 from torch import nn, optim
-from torch.autograd import Variable
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -39,12 +38,9 @@ optimizer = optim.SGD(model.parameters(), lr=1e-4)
 # 开始训练
 num_epochs = 1000
 for epoch in range(num_epochs):
-    inputs = Variable(x_train)
-    target = Variable(y_train)
-
     # forward
-    out = model(inputs)
-    loss = criterion(out, target)
+    out = model(x_train)
+    loss = criterion(out, y_train)
     # backward
     optimizer.zero_grad()
     loss.backward()
@@ -55,7 +51,7 @@ for epoch in range(num_epochs):
               .format(epoch+1, num_epochs, loss.data[0]))
 
 model.eval()
-predict = model(Variable(x_train))
+predict = model(x_train)
 predict = predict.data.numpy()
 plt.plot(x_train.numpy(), y_train.numpy(), 'ro', label='Original data')
 plt.plot(x_train.numpy(), predict, label='Fitting Line')

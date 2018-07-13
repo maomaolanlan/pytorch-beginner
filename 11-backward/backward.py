@@ -12,7 +12,7 @@ print('=====simple gradient======')
 print('input')
 print(a.data)
 print('compute result is')
-print(out.data[0])
+print(out.item())
 print('input gradients are')
 print(a.grad.data)
 
@@ -35,7 +35,11 @@ k = v(t.zeros(1, 2))
 m.grad.data.zero_()
 k[0, 0] = m[0, 0] ** 2 + 3 * m[0 ,1]
 k[0, 1] = m[0, 1] ** 2 + 2 * m[0, 0]
-k.backward(t.FloatTensor([[1, 0]]), retain_variables=True)
+#retain_graph=True，这个参数默认是False，
+#也就是反向传播之后这个计算图的内存会被释放，
+#这样就没办法进行第二次反向传播了，所以我们需要设置为True，
+#因为这里我们需要进行两次反向传播求得jacobian矩阵
+k.backward(t.FloatTensor([[1, 0]]), retain_graph=True)
 j[:, 0] = m.grad.data
 m.grad.data.zero_()
 k.backward(t.FloatTensor([[0, 1]]))
@@ -50,7 +54,7 @@ y = v(t.FloatTensor([[1, 2], [3, 4]]))
 
 z = t.mm(x, y)
 jacobian = t.zeros((2, 2))
-z.backward(t.FloatTensor([[1, 0]]), retain_variables=True)  # dz1/dx1, dz1/dx2
+z.backward(t.FloatTensor([[1, 0]]), retain_graph=True)  # dz1/dx1, dz1/dx2
 jacobian[:, 0] = x.grad.data
 x.grad.data.zero_()
 z.backward(t.FloatTensor([[0, 1]]))  # dz2/dx1, dz2/dx2

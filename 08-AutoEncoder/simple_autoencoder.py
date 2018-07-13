@@ -5,7 +5,6 @@ import os
 import torch
 import torchvision
 from torch import nn
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import MNIST
@@ -31,8 +30,8 @@ img_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-dataset = MNIST('./data', transform=img_transform)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+dataset = MNIST('../data', transform=img_transform)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 
 class autoencoder(nn.Module):
@@ -55,9 +54,10 @@ class autoencoder(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
+model = autoencoder()
+if torch.cuda.is_available():
+    model = model().cuda()
 
-
-model = autoencoder().cuda()
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(
     model.parameters(), lr=learning_rate, weight_decay=1e-5)
@@ -65,8 +65,10 @@ optimizer = torch.optim.Adam(
 for epoch in range(num_epochs):
     for data in dataloader:
         img, _ = data
+        # the size -1 is inferred from other dimensions
         img = img.view(img.size(0), -1)
-        img = Variable(img).cuda()
+        if torch.cuda.is_available():
+            img = img.cuda()
         # ===================forward=====================
         output = model(img)
         loss = criterion(output, img)
@@ -76,7 +78,7 @@ for epoch in range(num_epochs):
         optimizer.step()
     # ===================log========================
     print('epoch [{}/{}], loss:{:.4f}'
-          .format(epoch + 1, num_epochs, loss.data[0]))
+          .format(epoch + 1, num_epochs, loss.item()))
     if epoch % 10 == 0:
         pic = to_img(output.cpu().data)
         save_image(pic, './mlp_img/image_{}.png'.format(epoch))

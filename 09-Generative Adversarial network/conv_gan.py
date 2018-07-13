@@ -29,9 +29,9 @@ img_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-mnist = datasets.MNIST('./data', transform=img_transform)
+mnist = datasets.MNIST('../data', transform=img_transform)
 dataloader = DataLoader(mnist, batch_size=batch_size, shuffle=True,
-                        num_workers=4)
+                        num_workers=0)
 
 
 class discriminator(nn.Module):

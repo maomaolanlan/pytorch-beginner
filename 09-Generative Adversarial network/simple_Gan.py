@@ -5,7 +5,6 @@ import torch.nn.functional as F
 from torchvision import datasets
 from torchvision import transforms
 from torchvision.utils import save_image
-from torch.autograd import Variable
 import os
 
 if not os.path.exists('./img'):
@@ -30,7 +29,7 @@ img_transform = transforms.Compose([
 ])
 # MNIST dataset
 mnist = datasets.MNIST(
-    root='./data/', train=True, transform=img_transform, download=True)
+    root='../data/', train=True, transform=img_transform, download=False)
 # Data loader
 dataloader = torch.utils.data.DataLoader(
     dataset=mnist, batch_size=batch_size, shuffle=True)
@@ -81,9 +80,15 @@ for epoch in range(num_epoch):
         num_img = img.size(0)
         # =================train discriminator
         img = img.view(num_img, -1)
-        real_img = Variable(img).cuda()
-        real_label = Variable(torch.ones(num_img)).cuda()
-        fake_label = Variable(torch.zeros(num_img)).cuda()
+        if torch.cuda.is_available():
+            real_img = img.cuda()
+            real_label = torch.ones(num_img).cuda()
+            fake_label = torch.zeros(num_img).cuda()
+        else:
+            real_img = img
+            real_label = torch.ones(num_img)
+            fake_label = torch.zeros(num_img)
+        
 
         # compute loss of real_img
         real_out = D(real_img)
@@ -91,7 +96,10 @@ for epoch in range(num_epoch):
         real_scores = real_out  # closer to 1 means better
 
         # compute loss of fake_img
-        z = Variable(torch.randn(num_img, z_dimension)).cuda()
+        if torch.cuda.is_available():
+            z = torch.randn(num_img, z_dimension).cuda()
+        else:
+            z = torch.randn(num_img, z_dimension)
         fake_img = G(z)
         fake_out = D(fake_img)
         d_loss_fake = criterion(fake_out, fake_label)
@@ -105,7 +113,10 @@ for epoch in range(num_epoch):
 
         # ===============train generator
         # compute loss of fake_img
-        z = Variable(torch.randn(num_img, z_dimension)).cuda()
+        if torch.cuda.is_available():
+            z = torch.randn(num_img, z_dimension).cuda()
+        else:
+            z = torch.randn(num_img, z_dimension)
         fake_img = G(z)
         output = D(fake_img)
         g_loss = criterion(output, real_label)
@@ -118,7 +129,7 @@ for epoch in range(num_epoch):
         if (i + 1) % 100 == 0:
             print('Epoch [{}/{}], d_loss: {:.6f}, g_loss: {:.6f} '
                   'D real: {:.6f}, D fake: {:.6f}'.format(
-                      epoch, num_epoch, d_loss.data[0], g_loss.data[0],
+                      epoch, num_epoch, d_loss.item(), g_loss.item(),
                       real_scores.data.mean(), fake_scores.data.mean()))
     if epoch == 0:
         real_images = to_img(real_img.cpu().data)

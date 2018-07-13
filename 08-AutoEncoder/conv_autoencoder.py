@@ -30,8 +30,8 @@ img_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-dataset = MNIST('./data', transform=img_transform)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+dataset = MNIST('../data', transform=img_transform)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 
 class autoencoder(nn.Module):

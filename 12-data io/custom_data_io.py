@@ -25,6 +25,7 @@ class custom_dset(Dataset):
     def __getitem__(self, index):
         img_path = self.img_list[index]
         label = self.label_list[index]
+        # 正常使用时需要读取img_path指向的图片
         # img = self.loader(img_path)
         img = img_path
         if self.img_transform is not None:
@@ -47,3 +48,6 @@ def collate_fn(batch):
         pad_label.append(temp_label)
         lens.append(len(label[i]))
     return img, pad_label, lens
+
+if __name__ == "__main__":
+    dset = custom_dset('./train/img', './train.txt')

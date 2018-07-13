@@ -2,8 +2,6 @@ __author__ = 'SherlockLiao'
 
 import torch
 from torch import nn, optim
-import torch.nn.functional as F
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import datasets
@@ -11,11 +9,11 @@ import time
 # 定义超参数
 batch_size = 32
 learning_rate = 1e-3
-num_epoches = 100
+num_epoches = 20
 
 # 下载训练集 MNIST 手写数字训练集
 train_dataset = datasets.MNIST(
-    root='./data', train=True, transform=transforms.ToTensor(), download=True)
+    root='./data', train=True, transform=transforms.ToTensor(), download=False)
 
 test_dataset = datasets.MNIST(
     root='./data', train=False, transform=transforms.ToTensor())
@@ -54,18 +52,15 @@ for epoch in range(num_epoches):
         img, label = data
         img = img.view(img.size(0), -1)  # 将图片展开成 28x28
         if use_gpu:
-            img = Variable(img).cuda()
-            label = Variable(label).cuda()
-        else:
-            img = Variable(img)
-            label = Variable(label)
+            img = img.cuda()
+            label = label.cuda()
         # 向前传播
         out = model(img)
         loss = criterion(out, label)
-        running_loss += loss.data[0] * label.size(0)
+        running_loss += loss.item() * label.size(0)
         _, pred = torch.max(out, 1)
         num_correct = (pred == label).sum()
-        running_acc += num_correct.data[0]
+        running_acc += num_correct.item()
         # 向后传播
         optimizer.zero_grad()
         loss.backward()
@@ -85,17 +80,14 @@ for epoch in range(num_epoches):
         img, label = data
         img = img.view(img.size(0), -1)
         if use_gpu:
-            img = Variable(img, volatile=True).cuda()
-            label = Variable(label, volatile=True).cuda()
-        else:
-            img = Variable(img, volatile=True)
-            label = Variable(label, volatile=True)
+            img = img.cuda()
+            label = label.cuda()
         out = model(img)
         loss = criterion(out, label)
-        eval_loss += loss.data[0] * label.size(0)
+        eval_loss += loss.item() * label.size(0)
         _, pred = torch.max(out, 1)
         num_correct = (pred == label).sum()
-        eval_acc += num_correct.data[0]
+        eval_acc += num_correct.item()
     print('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(
         test_dataset)), eval_acc / (len(test_dataset))))
     print('Time:{:.1f} s'.format(time.time() - since))

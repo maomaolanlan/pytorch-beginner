@@ -7,7 +7,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision import datasets
-from logger import Logger
+#from logger import Logger
 
 # 定义超参数
 batch_size = 128
@@ -21,10 +21,10 @@ def to_np(x):
 
 # 下载训练集 MNIST 手写数字训练集
 train_dataset = datasets.MNIST(
-    root='./data', train=True, transform=transforms.ToTensor(), download=True)
+    root='../data', train=True, transform=transforms.ToTensor(), download=False)
 
 test_dataset = datasets.MNIST(
-    root='./data', train=False, transform=transforms.ToTensor())
+    root='../data', train=False, transform=transforms.ToTensor())
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -58,7 +58,7 @@ if use_gpu:
 # 定义loss和optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=learning_rate)
-logger = Logger('./logs')
+#logger = Logger('./logs')
 # 开始训练
 for epoch in range(num_epoches):
     print('epoch {}'.format(epoch + 1))
@@ -89,20 +89,20 @@ for epoch in range(num_epoches):
         # (1) Log the scalar values
         info = {'loss': loss.data[0], 'accuracy': accuracy.data[0]}
 
-        for tag, value in info.items():
-            logger.scalar_summary(tag, value, step)
+        #for tag, value in info.items():
+            #logger.scalar_summary(tag, value, step)
 
         # (2) Log values and gradients of the parameters (histogram)
-        for tag, value in model.named_parameters():
-            tag = tag.replace('.', '/')
-            logger.histo_summary(tag, to_np(value), step)
-            logger.histo_summary(tag + '/grad', to_np(value.grad), step)
+        #for tag, value in model.named_parameters():
+         #   tag = tag.replace('.', '/')
+            #logger.histo_summary(tag, to_np(value), step)
+            #logger.histo_summary(tag + '/grad', to_np(value.grad), step)
 
         # (3) Log the images
         info = {'images': to_np(img.view(-1, 28, 28)[:10])}
 
-        for tag, images in info.items():
-            logger.image_summary(tag, images, step)
+        #for tag, images in info.items():
+            #logger.image_summary(tag, images, step)
         if i % 300 == 0:
             print('[{}/{}] Loss: {:.6f}, Acc: {:.6f}'.format(
                 epoch + 1, num_epoches, running_loss / (batch_size * i),

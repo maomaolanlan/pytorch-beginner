@@ -1,7 +1,9 @@
 import torch
 import torch.nn.functional as F
 from torch import nn, optim
-from torch.autograd import Variable
+
+# N-Gram是基于一个假设：第n个词出现与前n-1个词相关，而与其他任何词不相关
+# http://www.pytorchtutorial.com/10-minute-pytorch-8/
 
 CONTEXT_SIZE = 2
 EMBEDDING_DIM = 10
@@ -43,7 +45,7 @@ class NgramModel(nn.Module):
         out = self.linear1(emb)
         out = F.relu(out)
         out = self.linear2(out)
-        log_prob = F.log_softmax(out)
+        log_prob = F.log_softmax(out,dim=1)
         return log_prob
 
 
@@ -57,21 +59,23 @@ for epoch in range(100):
     running_loss = 0
     for data in trigram:
         word, label = data
-        word = Variable(torch.LongTensor([word_to_idx[i] for i in word]))
-        label = Variable(torch.LongTensor([word_to_idx[label]]))
+        word = torch.LongTensor([word_to_idx[i] for i in word])
+        label = torch.LongTensor([word_to_idx[label]])
         # forward
         out = ngrammodel(word)
         loss = criterion(out, label)
-        running_loss += loss.data[0]
+        running_loss += loss.item()
         # backward
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
     print('Loss: {:.6f}'.format(running_loss / len(word_to_idx)))
 
+# 预测
+ngrammodel.eval()
 word, label = trigram[3]
-word = Variable(torch.LongTensor([word_to_idx[i] for i in word]))
+word = torch.LongTensor([word_to_idx[i] for i in word])
 out = ngrammodel(word)
 _, predict_label = torch.max(out, 1)
-predict_word = idx_to_word[predict_label.data[0][0]]
-print('real word is {}, predict word is {}'.format(label, predict_word))
+predict_word = idx_to_word[predict_label.item()]
+print('real word is "{}", predict word is "{}"'.format(label, predict_word))
